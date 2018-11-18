@@ -62,6 +62,7 @@ var board={
         players.whoPlays=(players.whoPlays==0) ? 1:0;
         this.checkHorizontal();
         this.checkVertical();
+        this.checkDiagonal();
     },
     checkHorizontal(){
         // check if on any row there are 4 subsequent colors
@@ -88,10 +89,7 @@ var board={
             }
         }
     },
-    checkSequenceRow(row){
-        // controlla le pedine nella riga row
-        
-    },
+   
     checkVertical(){
         // trova corrispondenza sull colonne verticali di 4 pedina seguenti dello stesso colore
         for (var col=0;col<this.sizeCols;col++){
@@ -115,6 +113,67 @@ var board={
             }
         }
     },
+    checkDiagonal(){
+        // check if there is a sequence in each diagonal
+        winningColor=this.baseColor;
+        for (var i=0;i<this.sizeCols*this.sizeRows;i++){
+            var startingButton=$("[id="+i+"]");
+            var row=startingButton.attr("row");
+            var col=startingButton.attr("col");
+            if (row<=this.sizeRows-4 && col<=this.sizeCols-4){
+                //console.log("call checkDownRight with param "+row+" "+col);
+                winningColor=this.checkDownRight(row,col);
+            }
+            if (row<=this.sizeRows-4 && col>=this.sizeCols-4){
+                winningColor=this.checkDownLeft(row,col);
+            }
+            /*
+            if (row>this.sizeRows-4 && col>=this.sizeCols-4){
+                winningColor=this.checkUpLeft(row,col);
+            }
+            
+            if (row>this.sizeRows-4 && col<=this.sizeCols-4){
+                winningColor=checkUpRight(row,col);
+            }*/
+            if (winningColor=="red" || winningColor=="yellow") {
+                players.evidenceWinner(winningColor);
+                break;
+            }
+        }
+    },
+    checkDownRight(row,col){
+        var id=parseInt(row)*this.sizeCols+parseInt(col);
+        var step=this.sizeCols+1;
+        //console.log("check down right row "+row+" col "+col+"#id "+id );
+        if (this.buttons[id].style.backgroundColor==this.baseColor){
+            return this.baseColor;
+        } else {
+            if (this.buttons[id].style.backgroundColor==this.buttons[id+step].style.backgroundColor &&
+                this.buttons[id+step].style.backgroundColor==this.buttons[id+step*2].style.backgroundColor &&
+                this.buttons[id+step*2].style.backgroundColor==this.buttons[id+step*3].style.backgroundColor){
+                    console.log(" inside check diagonale id finale "+id);
+                    return this.buttons[id].style.backgroundColor;
+                }
+            }
+            return this.baseColor;
+    },
+    checkDownLeft(row,col){
+        var id=parseInt(row)*this.sizeCols+parseInt(col);
+        var step=this.sizeCols-1;
+        //console.log("check down left row "+row+" col "+col+"#id "+id );
+        if (this.buttons[id].style.backgroundColor==this.baseColor){
+            return this.baseColor;
+        } else {
+            if (this.buttons[id].style.backgroundColor==this.buttons[id+step].style.backgroundColor &&
+                this.buttons[id+step].style.backgroundColor==this.buttons[id+step*2].style.backgroundColor &&
+                this.buttons[id+step*2].style.backgroundColor==this.buttons[id+step*3].style.backgroundColor){
+                    console.log(" inside check diagonale id finale "+id);
+                    return this.buttons[id].style.backgroundColor;
+                }
+            }
+            return this.baseColor;
+    },
+    
     colorePedina(colore){
         // ritorna 0 se il colore della pedina è rossa
         // 1 se gialla
