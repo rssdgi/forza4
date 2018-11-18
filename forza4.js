@@ -9,7 +9,7 @@ var board={
     initBoard(){
         // draw the board with size predefined
         var table=$("#tableID");
-        var j,i,id=0;
+        var id=-1;
         for (j=0;j<this.sizeRows;j++){
             //console.log("Appending row");
             $("<tr></tr>").appendTo($(table));
@@ -19,8 +19,9 @@ var board={
                 var tr=$("tr:last");
                 $(this.buttonHtml).appendTo(tr);
                 $("button:last").attr({
-                    id: id.toString(),
-                    col: (i+1),
+                    id: (id),
+                    row: (j),
+                    col: (i),
                 });
             }
         }
@@ -35,7 +36,7 @@ var board={
     playGame(){
         //do something
         var selectedCol=$(this).attr('col');
-        console.log("clicked on row "+$(this).attr('id')+" col "+selectedCol);
+        console.log("clicked on row "+$(this).attr('row')+" col "+$(this).attr('col')+" id "+$(this).attr('id'));
         // get all elements of the clicked column $("[col=4]").length
         board.putDisk(selectedCol);
     },
@@ -64,103 +65,53 @@ var board={
     },
     checkHorizontal(){
         // check if on any row there are 4 subsequent colors
-        // get board
-        var localBoard=$('button');
-        var id=-1;
-        // if any of these variable reaches 4 means there is a winner
-        var howManyColored=[0,0]; 
-        var lookForColor,colore=0;// 0=red 1=yellow - start luking for red
-        var winnerfound=false;
+        // for each row get buttons
         for(var row=0;row<this.sizeRows;row++){
-            for(var col=0;col<this.sizeCols;col++){
-                id++;
-                // if button is grey then next loop
-                //console.log("Checking horizontal on id "+id);
-                if(localBoard[id].style.backgroundColor==this.baseColor){
-                    howManyColored=[0,0];
-                    //console.log("Empy fish with id "+id);
+            // checkSequence ritorna red|yellow se trova 4 pedine  in squenza 
+            winningColor=this.baseColor;
+            var buttonsInRow=$("[row="+row+"]");
+            for (var col=0;col<this.sizeCols-4+1;col++){
+                if (buttonsInRow[col].style.backgroundColor==this.baseColor){
                     continue;
-                } 
-                // di che colore è la pedina
-                colore=this.colorePedina(localBoard[id].style.backgroundColor);
-                // se il colore della pedina è quello che sto già cercando
-                // incrementa il contatore del colore ed azzera il contatore dell'altro colore
-                if (colore==lookForColor){
-                    howManyColored[lookForColor]++;
-                    howManyColored[((lookForColor==0) ? 1:0)]=0;
-                    //console.log("looking for colore "+lookForColor+" at row "+row+" col "+col+" pedine trovate "+howManyColored[lookForColor]);
-                } else{
-                    // il colore è diverso da quello che sto cercando
-                    // comincio a cercare il nuovo colore 
-                    lookForColor=colore;
-                    // aumento il contatore di questo colore
-                    howManyColored[lookForColor]++;
-                    // azzero il contatore dell'altro colore
-                    howManyColored[((lookForColor==0) ? 1:0)]=0;
-                    //console.log("looking for colore "+lookForColor+" at row "+row+" col "+col+" pedine trovate "+howManyColored[lookForColor]);
-                }
-                // check if winner
-                if (howManyColored[0]>3 || howManyColored[1]>3){
-                    winnerfound=true;
-                    break;
+                } else {
+                    // there is a color. Check se 4 pedine seguenti sono dello stesso colore
+                    if (buttonsInRow[col].style.backgroundColor==buttonsInRow[col+1].style.backgroundColor &&
+                    buttonsInRow[col+1].style.backgroundColor==buttonsInRow[col+2].style.backgroundColor &&
+                    buttonsInRow[col+2].style.backgroundColor==buttonsInRow[col+3].style.backgroundColor ) {
+                        winningColor= buttonsInRow[col].style.backgroundColor;
                 }
             }
-            if (winnerfound) {
-                players.evidenceWinner(lookForColor);
+        }
+        if (winningColor=="red" || winningColor=="yellow") {
+                players.evidenceWinner(winningColor);
                 break;
-            } else {
-                howManyColored=[0,0];
             }
         }
     },
+    checkSequenceRow(row){
+        // controlla le pedine nella riga row
+        
+    },
     checkVertical(){
         // trova corrispondenza sull colonne verticali di 4 pedina seguenti dello stesso colore
-        var localBoard=$('button');
-        var id=0;
-        var howManyColored=[0,0]; 
-        var lookForColor,colore=0;// 0=red 1=yellow - start luking for red
-        var winnerfound=false;
-        for(var col=0;col<board.sizeCols;col++){
-            //console.log("Scanning column "+col);
-            for (var row=0;row<localBoard.length;row=row+board.sizeCols){
-                id=col+row;
-                //console.log("id pedine "+id);
-                // if button is grey then next loop
-                if(localBoard[id].style.backgroundColor==this.baseColor){
-                    howManyColored=[0,0];
-                    //console.log("Empy fish with id "+id);
+        for (var col=0;col<this.sizeCols;col++){
+            // checkSequence ritorna red|yellow se trova 4 pedine  in swquenza verticale
+            winningColor=this.baseColor;
+            var buttonsInCol=$("[col="+col+"]");
+            for (var i=0;i<this.sizeRows-4+1;i++){
+                if (buttonsInCol[i].style.backgroundColor==this.baseColor){
                     continue;
-                }
-                // di che colore è la pedina
-                colore=this.colorePedina(localBoard[id].style.backgroundColor);
-                // se il colore della pedina è quello che sto già cercando
-                // incrementa il contatore del colore ed azzera il contatore dell'altro colore
-                if (colore==lookForColor){
-                    howManyColored[lookForColor]++;
-                    howManyColored[((lookForColor==0) ? 1:0)]=0;
-                    //console.log("looking for colore "+lookForColor+" at row "+row+" col "+col+" pedine trovate "+howManyColored[lookForColor]);
-                } else{
-                    // il colore è diverso da quello che sto cercando
-                    // comincio a cercare il nuovo colore 
-                    lookForColor=colore;
-                    // aumento il contatore di questo colore
-                    howManyColored[lookForColor]++;
-                    // azzero il contatore dell'altro colore
-                    howManyColored[((lookForColor==0) ? 1:0)]=0;
-                    //console.log("looking for colore "+lookForColor+" at row "+row+" col "+col+" pedine trovate "+howManyColored[lookForColor]);
-                } 
-                 // check if winner
-                 if (howManyColored[0]>3 || howManyColored[1]>3){
-                    winnerfound=true;
-                    break;
+                } else {
+                    if (buttonsInCol[i].style.backgroundColor==buttonsInCol[i+1].style.backgroundColor &&
+                    buttonsInCol[i+1].style.backgroundColor==buttonsInCol[i+2].style.backgroundColor &&
+                    buttonsInCol[i+2].style.backgroundColor==buttonsInCol[i+3].style.backgroundColor ) {
+                        winningColor= buttonsInCol[i].style.backgroundColor;
+                    }
                 }
             }
-            id=0;
-            if (winnerfound) {
-                players.evidenceWinner(lookForColor);
+            if (winningColor=="red" || winningColor=="yellow") {
+                players.evidenceWinner(winningColor);
                 break;
-            } else {
-                howManyColored=[0,0];
             }
         }
     },
@@ -179,7 +130,7 @@ var players={
     name:[],
     whoPlays:0,
     evidenceWinner(colore){
-        $("h1:last").text(board.playersColor[colore]+" is the WINNER !!");
+        $("h1:last").text(colore+" is the WINNER !!");
         // remove all events
         var buttons=$("button");
         buttons.off('click');
